@@ -1,0 +1,153 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block dashboard_content %}
+{% if pending_leave_requests > 0 %}
+<div class="mb-6 flex items-center gap-3 rounded-lg border-2 border-amber-400 bg-amber-50 px-4 py-4 shadow-md">
+    <svg class="h-6 w-6 flex-shrink-0 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+    </svg>
+    <div>
+        <p class="font-bold text-amber-900">{{ pending_leave_requests }} leave request{{ pending_leave_requests|pluralize }} ready to forward</p>
+        <p class="text-sm text-amber-700">These employee requests need your review and forwarding to management for final approval.</p>
+    </div>
+    <a href="{% url 'core:leave-list' %}" class="ml-auto inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">
+        Review & Forward
+    </a>
+</div>
+{% endif %}
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-slate-900">HR Dashboard</h2>
+    <p class="mt-2 text-slate-600">Monitor key HR metrics, leave patterns, and employee benefits</p>
+</div>
+
+<!-- Executive Metrics -->
+<section class="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-indigo-600">Total Employees</p>
+                <p class="mt-3 text-3xl font-bold text-indigo-900">{{ total_employees }}</p>
+                <p class="mt-1 text-xs text-indigo-700">Active workforce</p>
+            </div>
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-200/50">
+                <span class="text-2xl">👥</span>
+            </div>
+        </div>
+    </article>
+
+    <article class="rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-orange-600">Leave Requests Pending</p>
+                <p class="mt-3 text-3xl font-bold text-orange-900">{{ pending_leave_requests }}</p>
+                <p class="mt-1 text-xs text-orange-700">Require approval</p>
+            </div>
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-orange-200/50">
+                <span class="text-2xl">🔔</span>
+            </div>
+        </div>
+    </article>
+
+    <article class="rounded-2xl bg-gradient-to-br from-red-50 to-red-100 p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-red-600">Training Feedback Entries</p>
+                <p class="mt-3 text-3xl font-bold text-red-900">{{ total_training_feedback }}</p>
+                <p class="mt-1 text-xs text-red-700">View all submitted feedback</p>
+                <a href="{% url 'core:training-feedback-list' %}" class="mt-4 inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                    View Feedback
+                </a>
+            </div>
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-200/50">
+                <span class="text-2xl">📝</span>
+            </div>
+        </div>
+    </article>
+
+    <article class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Appraisal Documents</p>
+                <p class="mt-3 text-3xl font-bold text-slate-900">{{ total_appraisals }}</p>
+                <p class="mt-1 text-xs text-slate-700">Active appraisal records</p>
+                <a href="{% url 'core:appraisal-list' %}" class="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">View Appraisals</a>
+            </div>
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200/50">
+                <span class="text-2xl">📄</span>
+            </div>
+        </div>
+    </article>
+
+    <article class="rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">Policy Documents</p>
+                <p class="mt-3 text-3xl font-bold text-emerald-900">{{ total_policies }}</p>
+                <p class="mt-1 text-xs text-emerald-700">Company policies available</p>
+                <a href="{% url 'core:policy-list' %}" class="mt-4 inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">View Policies</a>
+            </div>
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-200/50">
+                <span class="text-2xl">📚</span>
+            </div>
+        </div>
+    </article>
+</section>
+
+<!-- Leave Pattern And Employee Insights -->
+<section class="grid gap-6 lg:grid-cols-2">
+    <article class="rounded-2xl bg-white p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+            <h2 class="text-lg font-bold text-slate-900">Leave Application Patterns</h2>
+            {% if top_leave_day %}
+            <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">Top Day: {{ top_leave_day.day }}</span>
+            {% endif %}
+        </div>
+        {% if leave_pattern_metrics %}
+        <ul class="space-y-3">
+            {% for metric in leave_pattern_metrics %}
+            <li class="flex items-center justify-between rounded-lg bg-slate-50 p-3">
+                <p class="text-sm font-semibold text-slate-900">{{ metric.day }}</p>
+                <span class="inline-flex items-center rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-700">{{ metric.count }} applications</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-slate-500">No leave application data available yet.</p>
+        {% endif %}
+    </article>
+
+    <article class="rounded-2xl bg-white p-6 shadow-sm transition-all hover:shadow-md">
+        <div class="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+            <h2 class="text-lg font-bold text-slate-900">Employment History</h2>
+            <span class="inline-flex items-center rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700">Employee Profile</span>
+        </div>
+        <form method="get" class="mb-4">
+            <label for="employee" class="mb-2 block text-sm font-semibold text-slate-700">Select employee</label>
+            <select id="employee" name="employee" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                {% for employee in employee_options %}
+                    <option value="{{ employee.pk }}" {% if selected_employee and employee.pk == selected_employee.pk %}selected{% endif %}>
+                        {{ employee.full_name }} ({{ employee.employee_number }})
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Load Record</button>
+        </form>
+
+        {% if selected_employee %}
+            <div class="space-y-2 text-sm">
+                <div>
+                    <p class="font-semibold text-slate-700">Employment History:</p>
+                    {% if selected_employee.employment_history %}
+                        <p class="whitespace-pre-line text-slate-600">{{ selected_employee.employment_history }}</p>
+                    {% else %}
+                        <p class="text-slate-500">No employment history captured yet.</p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'core:profile-detail' selected_employee.pk %}" class="inline-block text-sm font-semibold text-teal-700 hover:underline">Open full employee record</a>
+            </div>
+        {% else %}
+            <p class="text-sm text-slate-500">No employee records available.</p>
+        {% endif %}
+    </article>
+</section>
+{% endblock %}

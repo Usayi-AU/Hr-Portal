@@ -1,0 +1,37 @@
+{% extends 'core/module_base.html' %}
+
+{% block module_content %}
+{% if is_hr %}
+<div class="mb-4 flex flex-wrap gap-3">
+    <a href="{% url 'core:food-feedback-report' %}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Download Feedback CSV</a>
+</div>
+{% endif %}
+<div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-600">
+            <tr>
+                <th class="px-3 py-2">Submitted At</th>
+                <th class="px-3 py-2">Feedback Date</th>
+                <th class="px-3 py-2">User</th>
+                <th class="px-3 py-2">Rating</th>
+                <th class="px-3 py-2">Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="border-b border-slate-100">
+                <td class="px-3 py-2">{{ item.created_at }}</td>
+                <td class="px-3 py-2">{{ item.feedback_date }}</td>
+                <td class="px-3 py-2">{{ item.submitted_by.username }}</td>
+                <td class="px-3 py-2">{{ item.rating|default:'-' }}</td>
+                <td class="px-3 py-2">{{ item.remarks }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-3 py-6 text-center text-slate-500">No feedback submitted yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

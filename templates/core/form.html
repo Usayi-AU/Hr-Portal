@@ -1,0 +1,145 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="mx-auto max-w-3xl">
+    <div class="rounded-2xl bg-white/95 border border-slate-200 p-6 shadow-sm transition-all hover:shadow-md sm:p-8">
+        <div class="mb-8 border-b border-slate-100 pb-4">
+            <h1 class="text-xl font-semibold text-slate-900">{{ title }}</h1>
+            <p class="mt-2 text-xs text-slate-600">Fill in all required fields to proceed</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            {% if leave_employee or form.instance.employee %}
+            {% with profile=leave_employee|default:form.instance.employee %}
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                <h3 class="mb-3 text-sm font-semibold text-slate-900">Leave Applicant</h3>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="text-slate-500">Employee Name</div>
+                    <div class="font-medium text-slate-800">{{ profile.full_name }}</div>
+                    <div class="text-slate-500">Employee Number</div>
+                    <div class="font-medium text-slate-800">{{ profile.employee_number }}</div>
+                    <div class="text-slate-500">Department</div>
+                    <div class="font-medium text-slate-800">{{ profile.job_title }}</div>
+                    <div class="text-slate-500">Company</div>
+                    <div class="font-medium text-slate-800">
+                        {% if profile.company %}{{ profile.company.name }}{% else %}-{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endif %}
+            {% if form.non_field_errors %}
+            <div class="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                {{ form.non_field_errors|striptags }}
+            </div>
+            {% endif %}
+            {% for field in form %}
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700" for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-red-600">*</span>{% endif %}
+                </label>
+                <div class="relative">
+                    {% if field.name == 'email' %}
+                    <div class="flex items-center gap-2">
+                        {{ field }}
+                        <span id="email-domain-suffix" class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs text-slate-600 border border-l-0">@example.com</span>
+                    </div>
+                    {% else %}
+                    {{ field }}
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="mt-2 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                        <span class="mt-0.5">⚠️</span>
+                        <div>{{ field.errors|striptags }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if field.help_text %}
+                <p class="mt-1.5 text-xs text-slate-500">{{ field.help_text|safe }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div class="border-t border-slate-100 pt-6">
+                <div class="flex gap-3">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                        </svg>
+                        {{ submit_label|default:'Save Changes' }}
+                    </button>
+                    <a href="{{ cancel_url }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-3 font-semibold text-slate-700 transition-all hover:bg-slate-50">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+        <script>
+        (function(){
+            const domainMap = {
+                'Intellego Investment Consultants': '@intellego-ic.com',
+                'HEW Corporate Lawyers': '@hewcorplaw.com',
+                'MMC Capital': '@mmccapitalzim.com'
+            };
+
+            function getCompanyNameFromSelect(select){
+                if(!select) return '';
+                const opt = select.options[select.selectedIndex];
+                return opt ? opt.text.trim() : '';
+            }
+
+            function updateSuffix(){
+                const companySelect = document.querySelector('[name="company"]');
+                const emailInput = document.querySelector('[name="email"]');
+                const suffix = document.getElementById('email-domain-suffix');
+                if(!suffix) return;
+                let domain = '';
+                if(companySelect){
+                    const cname = getCompanyNameFromSelect(companySelect);
+                    domain = domainMap[cname] || '';
+                }
+                suffix.textContent = domain || '';
+                // show placeholder hint if no domain selected
+                if(emailInput && !emailInput.placeholder){
+                    emailInput.placeholder = 'local-part (e.g. john.doe)';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function(){
+                updateSuffix();
+                const companySelect = document.querySelector('[name="company"]');
+                const form = document.querySelector('form');
+                if(companySelect) companySelect.addEventListener('change', updateSuffix);
+
+                if(form){
+                    form.addEventListener('submit', function(){
+                        const emailInput = document.querySelector('[name="email"]');
+                        const suffix = document.getElementById('email-domain-suffix');
+                        if(!emailInput || !suffix) return;
+                        const domain = suffix.textContent || '';
+                        let value = emailInput.value.trim();
+                        if(!value && document.querySelector('[name="user"]')){
+                            value = document.querySelector('[name="user"]').value || '';
+                        }
+                        if(domain){
+                            if(value.includes('@')){
+                                // replace domain part
+                                const local = value.split('@')[0];
+                                emailInput.value = local + domain;
+                            } else if(value){
+                                emailInput.value = value + domain;
+                            }
+                        }
+                    });
+                }
+            });
+        })();
+        </script>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'core/module_base.html' %}
+
+{% block module_content %}
+{% if is_hr %}
+<div class="mb-4 flex flex-wrap gap-3">
+    <a href="{% url 'core:food-orders-report' %}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Download Orders CSV</a>
+</div>
+{% endif %}
+<div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-600">
+            <tr>
+                <th class="px-3 py-2">Ordered At</th>
+                <th class="px-3 py-2">User</th>
+                <th class="px-3 py-2">Week</th>
+                <th class="px-3 py-2">Day</th>
+                <th class="px-3 py-2">Menu Item</th>
+                <th class="px-3 py-2">Qty</th>
+                <th class="px-3 py-2">Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="border-b border-slate-100">
+                <td class="px-3 py-2">{{ item.ordered_at }}</td>
+                <td class="px-3 py-2">{{ item.ordered_by.username }}</td>
+                <td class="px-3 py-2">{{ item.menu_item.week_start }}</td>
+                <td class="px-3 py-2">{{ item.menu_item.get_weekday_display }}</td>
+                <td class="px-3 py-2">{{ item.menu_item.item_name }}</td>
+                <td class="px-3 py-2">{{ item.quantity }}</td>
+                <td class="px-3 py-2">{{ item.notes|default:'-' }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-3 py-6 text-center text-slate-500">No food orders yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

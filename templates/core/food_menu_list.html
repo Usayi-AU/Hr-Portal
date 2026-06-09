@@ -1,0 +1,41 @@
+{% extends 'core/module_base.html' %}
+
+{% block module_content %}
+<div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-600">
+            <tr>
+                <th class="px-3 py-2">Week Start</th>
+                <th class="px-3 py-2">Day</th>
+                <th class="px-3 py-2">Menu Item</th>
+                <th class="px-3 py-2">Description</th>
+                <th class="px-3 py-2">Available</th>
+                <th class="px-3 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="border-b border-slate-100">
+                <td class="px-3 py-2">{{ item.week_start }}</td>
+                <td class="px-3 py-2">{{ item.get_weekday_display }}</td>
+                <td class="px-3 py-2">{{ item.item_name }}</td>
+                <td class="px-3 py-2">{{ item.description|default:'-' }}</td>
+                <td class="px-3 py-2">{{ item.is_available|yesno:'Yes,No' }}</td>
+                <td class="px-3 py-2">
+                    {% if is_hr %}
+                    <a href="{% url 'core:food-menu-edit' item.pk %}" class="text-slate-700 hover:underline">Edit</a>
+                    <a href="{% url 'core:food-menu-delete' item.pk %}" class="ml-3 text-rose-600 hover:underline">Delete</a>
+                    {% else %}
+                    <span class="text-slate-500">View Only</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-3 py-6 text-center text-slate-500">No weekly menu uploaded yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

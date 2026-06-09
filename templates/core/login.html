@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | HR User Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background:
+                linear-gradient(rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.72)),
+                url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        input, select, textarea {
+            border: 1.5px solid #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.12);
+            outline: none;
+        }
+        .login-card {
+            box-shadow: 0 24px 70px rgba(2, 6, 23, 0.35);
+            backdrop-filter: blur(6px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.28);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-900">
+    <div class="flex min-h-screen flex-col">
+        <main class="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+            <section class="login-card w-full max-w-md overflow-hidden rounded-2xl bg-white p-8 sm:p-10">
+                <div class="mb-8 text-center">
+                    <div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-teal-100 to-cyan-100">
+                        <svg class="h-8 w-8 text-teal-700" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold text-slate-900">HR Portal</h1>
+                    <p class="mt-2 text-sm text-slate-600">Welcome! Please log in to your account</p>
+                </div>
+
+                {% if form.errors %}
+                <div class="mb-6 flex items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    <svg class="h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/>
+                    </svg>
+                    <span>Invalid username or password</span>
+                </div>
+                {% endif %}
+
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
+                    <div>
+                        <label for="id_username" class="mb-2 block text-sm font-semibold text-slate-700">Username</label>
+                        <input id="id_username" name="username" type="text" required placeholder="Enter your username" class="w-full rounded-lg px-4 py-3 text-sm" />
+                    </div>
+                    <div>
+                        <label for="id_password" class="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                        <div class="relative">
+                            <input id="id_password" name="password" type="password" required placeholder="Enter your password" class="w-full rounded-lg px-4 py-3 pr-12 text-sm" />
+                            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-slate-500 hover:text-slate-900" aria-label="Show or hide password">
+                                <svg id="password-toggle-icon" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full rounded-lg px-4 py-3 text-sm font-semibold text-white">Sign In</button>
+                </form>
+
+            </section>
+        </main>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var passwordInput = document.getElementById('id_password');
+                var toggleButton = document.getElementById('toggle-password');
+                var toggleIcon = document.getElementById('password-toggle-icon');
+
+                if (!passwordInput || !toggleButton || !toggleIcon) return;
+
+                toggleButton.addEventListener('click', function () {
+                    var isVisible = passwordInput.type === 'text';
+                    passwordInput.type = isVisible ? 'password' : 'text';
+                    toggleIcon.innerHTML = isVisible
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.958 9.958 0 012.169-3.326m3.073-2.306A9.969 9.969 0 0112 5c4.478 0 8.269 2.943 9.543 7a9.958 9.958 0 01-4.622 5.877M15 12a3 3 0 11-6 0 3 3 0 016 0z" />';
+                });
+            });
+        </script>
+
+        <footer class="border-t border-white/20 bg-black/20 px-4 py-6 text-center text-xs text-white/80 backdrop-blur-sm">
+            <p>&copy; 2026 All rights reserved. Developed by <span class="font-semibold">IT</span></p>
+        </footer>
+    </div>
+</body>
+</html>

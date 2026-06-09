@@ -1,0 +1,35 @@
+{% extends 'core/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="mx-auto max-w-5xl space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">{{ profile.full_name }}</h1>
+            <p class="text-sm text-slate-600">Employee #{{ profile.employee_number }}</p>
+            <p class="text-sm text-slate-600">Company: {{ profile.company.name|default:'-' }}</p>
+        </div>
+        <a href="{{ back_url }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Back to Directory</a>
+    </div>
+
+    <section class="rounded-2xl bg-white p-6 shadow-sm">
+        <h2 class="mb-4 text-lg font-semibold text-slate-900">Personal Details</h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+            <div><span class="font-semibold text-slate-700">Job Title:</span> {{ profile.job_title }}</div>
+            <div><span class="font-semibold text-slate-700">Date of Birth:</span> {{ profile.date_of_birth|date:'d/m/Y'|default:'-' }}</div>
+            <div><span class="font-semibold text-slate-700">Date Joined:</span> {{ profile.date_joined|date:'d/m/Y'|default:'-' }}</div>
+            <div><span class="font-semibold text-slate-700">Dependents:</span> {{ profile.dependents_count }}</div>
+            <div><span class="font-semibold text-slate-700">Email:</span> {{ profile.email }}</div>
+            <div><span class="font-semibold text-slate-700">Phone:</span> {{ profile.phone|default:'-' }}</div>
+        </div>
+    </section>
+
+    <section class="rounded-2xl bg-white p-6 shadow-sm">
+        <h2 class="mb-4 text-lg font-semibold text-slate-900">Employment History</h2>
+        {% if profile.employment_history %}
+            <p class="whitespace-pre-line text-sm text-slate-700">{{ profile.employment_history }}</p>
+        {% else %}
+            <p class="text-sm text-slate-500">No employment history has been captured yet.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

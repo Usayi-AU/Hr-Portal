@@ -1,0 +1,98 @@
+{% extends 'core/module_base.html' %}
+
+{% block module_content %}
+<div class="mb-4 flex flex-wrap items-center justify-end gap-3">
+    {% if is_hr %}
+    <a href="{% url 'core:leave-report' %}" class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md">
+        Download All Approved Leave PDF
+    </a>
+    {% endif %}
+</div>
+<div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-600">
+            <tr>
+                <th class="px-3 py-2">Employee</th>
+                <th class="px-3 py-2">Type</th>
+                <th class="px-3 py-2">Start</th>
+                <th class="px-3 py-2">End</th>
+                <th class="px-3 py-2">Status</th>
+                <th class="px-3 py-2">Leave Reason</th>
+                <th class="px-3 py-2">Management Comment</th>
+                <th class="px-3 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="border-b border-slate-100">
+                <td class="px-3 py-2">{{ item.employee.full_name }}</td>
+                <td class="px-3 py-2">{{ item.get_leave_type_display }}</td>
+                <td class="px-3 py-2">{{ item.start_date|date:'d/m/Y' }}</td>
+                <td class="px-3 py-2">{{ item.end_date|date:'d/m/Y' }}</td>
+                <td class="px-3 py-2">{{ item.get_status_display }}</td>
+                <td class="px-3 py-2 text-slate-600">
+                    {% if item.reason %}
+                        {{ item.reason }}
+                    {% else %}
+                        <span class="text-slate-400">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-3 py-2">
+                    {% if item.management_comment %}
+                        {% if item.status == 'approved' %}
+                        <div class="space-y-1 rounded-lg bg-emerald-50 p-3">
+                            <p class="font-semibold text-emerald-800">OK {{ item.management_comment }}</p>
+                            {% if item.reviewed_by %}
+                            <p class="text-xs text-emerald-600">By {{ item.reviewed_by.get_full_name|default:item.reviewed_by.username }}{% if item.reviewed_at %} on {{ item.reviewed_at|date:"d/m/Y H:i" }}{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        {% elif item.status == 'rejected' %}
+                        <div class="space-y-1 rounded-lg bg-rose-50 p-3">
+                            <p class="font-semibold text-rose-800">REJECTED: {{ item.management_comment }}</p>
+                            {% if item.reviewed_by %}
+                            <p class="text-xs text-rose-600">By {{ item.reviewed_by.get_full_name|default:item.reviewed_by.username }}{% if item.reviewed_at %} on {{ item.reviewed_at|date:"d/m/Y H:i" }}{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="space-y-1">
+                            <p class="text-slate-600">{{ item.management_comment }}</p>
+                            {% if item.reviewed_by %}
+                            <p class="text-xs text-slate-400">By {{ item.reviewed_by.get_full_name|default:item.reviewed_by.username }}{% if item.reviewed_at %} on {{ item.reviewed_at|date:"d/m/Y H:i" }}{% endif %}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-slate-400">-</span>
+                    {% endif %}
+                </td>
+                <td class="px-3 py-2">
+                    <a href="{% url 'core:leave-download-pdf' item.pk %}" class="text-slate-700 hover:underline">Download PDF</a>
+                    {% if is_hr %}
+                    <a href="{% url 'core:leave-edit' item.pk %}" class="ml-3 text-slate-700 hover:underline">Edit</a>
+                    <a href="{% url 'core:leave-delete' item.pk %}" class="ml-3 text-rose-600 hover:underline">Delete</a>
+                    {% if item.status != 'forwarded' %}
+                    <form method="post" action="{% url 'core:leave-forward' item.pk %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="ml-3 text-indigo-700 hover:underline">Forward to Management</button>
+                    </form>
+                    {% endif %}
+                    {% elif sidebar_role == 'management' %}
+                        {% if item.status == 'forwarded' %}
+                        <a href="{% url 'core:leave-review' item.pk %}" class="text-slate-700 hover:underline">Review</a>
+                        {% else %}
+                        <span class="text-slate-500">Reviewed</span>
+                        {% endif %}
+                    {% else %}
+                    <span class="text-slate-500">Submitted</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="px-3 py-6 text-center text-slate-500">No leave requests yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

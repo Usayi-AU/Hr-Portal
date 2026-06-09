@@ -1,0 +1,56 @@
+{% extends 'core/module_base.html' %}
+{% load static %}
+{% load file_icons %}
+
+{% block module_content %}
+<div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-600">
+            <tr>
+                <th class="px-3 py-2">Employee</th>
+                <th class="px-3 py-2">Period</th>
+                <th class="px-3 py-2">Basic</th>
+                <th class="px-3 py-2">Deductions</th>
+                <th class="px-3 py-2">Net Pay</th>
+                <th class="px-3 py-2">Payslip</th>
+                <th class="px-3 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="border-b border-slate-100">
+                <td class="px-3 py-2">{{ item.employee.full_name }}</td>
+                <td class="px-3 py-2">{{ item.period_label }}</td>
+                <td class="px-3 py-2">{{ item.basic_salary }}</td>
+                <td class="px-3 py-2">{{ item.deductions }}</td>
+                <td class="px-3 py-2">{{ item.net_pay }}</td>
+                <td class="px-3 py-2">
+                    {% if item.payslip_file %}
+                    {% with icon=item.payslip_file.name|file_icon %}
+                    <a href="{{ item.payslip_file.url }}" class="inline-flex items-center gap-2 text-slate-700 hover:underline" download>
+                        <img src="{% static 'images/filetypes/'|add:icon %}" alt="file icon" class="h-4 w-4" />
+                        Download
+                    </a>
+                    {% endwith %}
+                    {% else %}
+                    <span class="text-slate-500">Not Uploaded</span>
+                    {% endif %}
+                </td>
+                <td class="px-3 py-2">
+                    {% if is_hr %}
+                    <a href="{% url 'core:payroll-edit' item.pk %}" class="text-slate-700 hover:underline">Edit</a>
+                    <a href="{% url 'core:payroll-delete' item.pk %}" class="ml-3 text-rose-600 hover:underline">Delete</a>
+                    {% else %}
+                    <span class="text-slate-500">View Only</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="px-3 py-6 text-center text-slate-500">No payroll records yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

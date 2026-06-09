@@ -1,0 +1,78 @@
+{% extends 'core/module_base.html' %}
+{% load static %}
+{% load file_icons %}
+
+{% block module_content %}
+{% if is_hr %}
+<div class="mb-6 flex flex-wrap items-center gap-3">
+    <form method="get" class="flex flex-wrap items-end gap-3">
+        <div>
+            <label for="employee" class="mb-2 block text-sm font-semibold text-slate-700">Filter by employee</label>
+            <select id="employee" name="employee" class="min-w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option value="">All employees</option>
+                {% for employee in employee_options %}
+                <option value="{{ employee.pk }}" {% if selected_employee_id == employee.pk|stringformat:'s' %}selected{% endif %}>
+                    {{ employee.full_name }} ({{ employee.employee_number }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Filter</button>
+        <a href="{% url 'core:appraisal-create' %}" class="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">Upload Appraisal</a>
+    </form>
+</div>
+{% endif %}
+
+<div class="overflow-x-auto">
+    <table class="min-w-full text-left text-sm">
+        <thead class="border-b border-slate-200 text-slate-600">
+            <tr>
+                <th class="px-3 py-2">Employee</th>
+                <th class="px-3 py-2">Title</th>
+                <th class="px-3 py-2">Period</th>
+                <th class="px-3 py-2">Description</th>
+                <th class="px-3 py-2">Document</th>
+                <th class="px-3 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="border-b border-slate-100">
+                <td class="px-3 py-2">{{ item.employee.full_name }}</td>
+                <td class="px-3 py-2">{{ item.title }}</td>
+                <td class="px-3 py-2">{{ item.appraisal_period|default:'-' }}</td>
+                <td class="px-3 py-2">{{ item.description|default:'-' }}</td>
+                <td class="px-3 py-2">
+                    {% if item.file %}
+                    {% with icon=item.file.name|file_icon format=item.file.name|file_format %}
+                    <a href="{{ item.file.url }}" class="inline-flex items-center gap-2 text-blue-600 hover:underline mr-3" target="_blank">
+                        <img src="{% static 'images/filetypes/'|add:icon %}" alt="file icon" class="h-4 w-4" />
+                        {{ format }} View
+                    </a>
+                    <a href="{{ item.file.url }}" class="inline-flex items-center gap-2 text-slate-700 hover:underline" download>
+                        <img src="{% static 'images/filetypes/'|add:icon %}" alt="file icon" class="h-4 w-4" />
+                        {{ format }} Download
+                    </a>
+                    {% endwith %}
+                    {% else %}
+                    <span class="text-slate-500">No File</span>
+                    {% endif %}
+                </td>
+                <td class="px-3 py-2">
+                    {% if is_hr %}
+                    <a href="{% url 'core:appraisal-edit' item.pk %}" class="text-slate-700 hover:underline">Edit</a>
+                    <a href="{% url 'core:appraisal-delete' item.pk %}" class="ml-3 text-rose-600 hover:underline">Delete</a>
+                    {% else %}
+                    <span class="text-slate-500">View Only</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-3 py-6 text-center text-slate-500">No appraisal documents available yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
