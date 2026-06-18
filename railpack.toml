@@ -1,0 +1,5 @@
+[build]
+nixpacks = false
+
+[start]
+cmd = "gunicorn config.wsgi:application"
