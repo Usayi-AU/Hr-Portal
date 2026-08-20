@@ -5,156 +5,134 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ dashboard_title }} | HR User Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root{--accent:#0f766e;--muted:#64748b}
-        html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-        /* Use safe box-sizing and allow horizontal scrolling when needed so content isn't cut off */
-        *,*::before,*::after{box-sizing:border-box}
-        body{overflow-x:auto}
+        :root {
+            --accent: #0b7f85;
+            --accent-deep: #07131f;
+            --gold: #d7b66d;
+            --surface: #f8fafc;
+            --muted: #64748b;
+        }
 
-        /* Prevent flex children from forcing overflow — allow them to shrink */
-        .flex-1, main, .lg\:grid-cols-\[220px_1fr\] {min-width:0}
+        html, body {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef7f8 100%);
+        }
 
-        /* Allow the main content area to scroll horizontally when necessary without clipping */
-        main {overflow-x:auto; -webkit-overflow-scrolling:touch}
-        input,
-        select,
-        textarea {
+        *, *::before, *::after { box-sizing: border-box; }
+        body { overflow-x: auto; }
+
+        .flex-1, main, .lg\:grid-cols-\[220px_1fr\] { min-width: 0; }
+        main { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        input, select, textarea {
             width: 100%;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            padding: 0.625rem 0.875rem;
-            background: #fff;
+            border: 1px solid #dbe3ef;
+            border-radius: 0.9rem;
+            padding: 0.75rem 0.9rem;
+            background: rgba(255,255,255,0.94);
             font-size: 0.9375rem;
             font-weight: 500;
-            color: #1e293b;
+            color: #0f172a;
             transition: all 0.2s ease;
         }
 
-        input::placeholder,
-        textarea::placeholder {
-            color: #94a3b8;
-        }
-
-        input:hover,
-        select:hover,
-        textarea:hover {
-            border-color: #94a3b8;
-            background-color: #f8fafc;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
+        input::placeholder, textarea::placeholder { color: #94a3b8; }
+        input:hover, select:hover, textarea:hover { border-color: #9ec8c9; background-color: #f8fbfb; }
+        input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(11,127,133,0.12), 0 1px 3px rgba(15,23,42,0.05);
             background-color: #fff;
         }
 
-        /* Styled checkboxes */
         input[type="checkbox"] {
             width: auto;
             margin-right: 0.5rem;
             cursor: pointer;
         }
 
-        /* Select dropdown styling */
         select {
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 0.625rem center;
-            background-size: 1.25rem;
+            background-position: right 0.75rem center;
+            background-size: 1.2rem;
             padding-right: 2.5rem;
         }
 
-        /* Sidebar brand styling */
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
+        .sidebar-brand { display: flex; align-items: center; gap: 0.9rem; }
         .sidebar-brand-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 0;
-            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            width: 72px; height: 72px;
+            min-width: 72px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.28);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 28px rgba(2,6,23,0.18);
+        }
+        .sidebar-brand-logo { width: 52px; height: 52px; object-fit: contain; }
+
+        nav a, nav button { transition: all 0.18s ease; }
+        nav a:hover {
+            background: rgba(11,127,133,0.15);
+            transform: translateX(2px);
         }
 
-        .sidebar-brand-logo {
-            width: 44px;
-            height: 44px;
-            object-fit: contain;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(11,127,133,0.18);
         }
 
-        /* Navigation link styling */
-        nav a, nav button {transition:background-color .12s ease,transform .12s ease}
-        nav a:hover{background:rgba(15,118,110,.12);transform:translateX(2px)}
+        .btn-secondary {
+            background: #f8fafc;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(148,163,184,0.18);
+        }
 
-        /* Button styling */
-        .btn-primary{background:linear-gradient(90deg,var(--accent),#0ea5e9);transition:transform .12s ease,box-shadow .12s ease}
-        .btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(15,118,110,.12)}
-        .btn-secondary{background:#f8fafc;color:#1e293b;border:1px solid #cbd5e1;transition:transform .12s ease,box-shadow .12s ease}
-        .btn-secondary:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(148,163,184,.18)}
-
-        /* Toast notification styling */
-        .toast-container{position:fixed;top:1.5rem;left:50%;z-index:50;display:flex;flex-direction:column;align-items:center;gap:0.75rem;width:calc(100% - 2rem);max-width:40rem;transform:translateX(-50%);pointer-events:none}
-        .toast-message{pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;background:#ffffff;border:1px solid #cbd5e1;border-radius:1rem;box-shadow:0 20px 50px rgba(15,23,42,.08);padding:1rem 1.25rem;color:#0f172a;animation:toast-slide-in .18s ease-out}
-        .toast-message.success{border-color:#22c55e;background:#ecfdf5;color:#064e3b}
-        .toast-message.error{border-color:#f87171;background:#fef2f2;color:#991b1b}
-        .toast-message.info{border-color:#38bdf8;background:#eff6ff;color:#0c4a6e}
-        .toast-message.warning{border-color:#fbbf24;background:#fef9c3;color:#92400e}
+        .toast-container {
+            position: fixed; top: 1.5rem; left: 50%; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; width: calc(100% - 2rem); max-width: 40rem; transform: translateX(-50%); pointer-events: none;
+        }
+        .toast-message {
+            pointer-events: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; background: #ffffff; border: 1px solid #dfe6ef; border-radius: 1rem; box-shadow: 0 18px 45px rgba(15,23,42,.08); padding: 1rem 1.25rem; color: #0f172a; animation: toast-slide-in .18s ease-out;
+        }
+        .toast-message.success{border-color:#4ade80;background:#ecfdf5;color:#065f46}
+        .toast-message.error{border-color:#fca5a5;background:#fef2f2;color:#991b1b}
+        .toast-message.info{border-color:#7dd3fc;background:#eff6ff;color:#0c4a6e}
+        .toast-message.warning{border-color:#fcd34d;background:#fef9c3;color:#92400e}
         .toast-message.fade-out{opacity:0;transform:translateY(-10px);transition:opacity .4s ease,transform .4s ease}
-
         @keyframes toast-slide-in{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
 
-        /* Card styling */
         article{transition:transform .12s ease,box-shadow .12s ease}
         article:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(2,6,23,.06)}
 
-        /* Table styling */
-        table {
-            border-collapse: collapse;
-            width:100%;
-            table-layout:auto;
-        }
+        table { border-collapse: collapse; width:100%; table-layout:auto; }
+        th, td { word-wrap:break-word; overflow-wrap:anywhere; hyphens:auto; }
+        tbody tr { transition: background-color 0.2s ease; }
+        tbody tr:hover { background: #f8fafc; }
 
-        /* Cells should wrap where appropriate to avoid overlap; long words may break */
-        th, td {
-            word-wrap:break-word;
-            overflow-wrap:anywhere;
-            hyphens:auto;
-        }
+        footer { border-top:1px solid #e6eef6; background:linear-gradient(180deg,#fbfcfe,#f8fafc); }
+        a { transition: all 0.2s ease; }
 
-        tbody tr {
-            transition: background-color 0.2s ease;
-        }
-
-        tbody tr:hover{background:#f8fafc}
-
-        /* Professional footer */
-        footer{border-top:1px solid #e6eef6;background:linear-gradient(180deg,#fbfcfe,#f8fafc)}
-
-        /* Link styling */
-        a {
-            transition: all 0.2s ease;
-        }
-        /* small responsive tweaks */
-        @media (max-width:1024px){.lg\:grid-cols-\[220px_1fr\]{grid-template-columns:200px 1fr!important}}
+        @media (max-width:1024px){ .lg\:grid-cols-\[220px_1fr\]{grid-template-columns:200px 1fr!important} }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div class="flex min-h-screen flex-col">
         <div class="flex flex-1 lg:grid lg:grid-cols-[220px_1fr]">
-            <aside class="border-r border-slate-200 bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100">
-                <div class="border-b border-slate-700 p-6">
+            <aside class="border-r border-slate-200 bg-gradient-to-b from-[#07131f] via-[#0f2430] to-[#0b7f85] text-slate-100">
+                <div class="border-b border-white/10 p-6">
                     <div class="sidebar-brand">
                         <div class="sidebar-brand-icon">
                             {% if company_name == 'HEW Corporate Lawyers' %}
@@ -166,72 +144,93 @@
                             {% endif %}
                         </div>
                         <div>
-                                <p class="text-sm font-bold tracking-wide">{{ company_name|default:'Intellego' }}</p>
-                            <p class="text-xs text-slate-400">HR Portal</p>
+                            <p class="text-sm font-bold tracking-wide">{{ company_name|default:'Intellego' }}</p>
+                            <p class="text-xs text-slate-300">HR Portal</p>
                         </div>
                     </div>
-                    <p class="mt-4 text-xs text-slate-400">{{ dashboard_title }}</p>
+                    <p class="mt-4 text-xs uppercase tracking-[0.2em] text-slate-300">{{ dashboard_title }}</p>
                 </div>
 
                 <nav class="space-y-1 px-4 py-6 text-sm">
-                    <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-widest text-slate-400">Navigation</p>
+                    <p class="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300">Navigation</p>
                     <ul class="space-y-2">
                         <li>
-                            <a href="{% url 'core:home' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">
+                            <a href="{% url 'core:home' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">
                                 Home
                             </a>
                         </li>
                         {% if sidebar_role == 'employee' %}
-                        <li><a href="{% url 'core:profile-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">My Profile</a></li>
-                        <li><a href="{% url 'core:leave-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Leave Requests</a></li>
+                        <li><a href="{% url 'core:leave-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Leave Requests</a></li>
                         {% if company_name == 'HEW Corporate Lawyers' or company_name == 'MMC Capital' %}
-                        <li><a href="{% url 'core:food-portal' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Food Services</a></li>
+                        <li><a href="{% url 'core:food-portal' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Food Services</a></li>
                         {% endif %}
-                        <li><a href="{% url 'core:training-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Trainings</a></li>
-                        <li><a href="{% url 'core:appraisal-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Performance Appraisals</a></li>
-                        <li><a href="{% url 'core:policy-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Policy Hub</a></li>
+                        <li><a href="{% url 'core:training-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Trainings</a></li>
+                        <li><a href="{% url 'core:appraisal-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Performance Appraisals</a></li>
+                        <li><a href="{% url 'core:policy-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Policy Hub</a></li>
                         {% elif sidebar_role == 'management' %}
-                        <li><a href="{% url 'core:profile-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">My Profile</a></li>
-                        <li><a href="{% url 'core:leave-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Leave Inbox</a></li>
-                        <li><a href="{% url 'core:leave-create' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Request Leave</a></li>
+                        <li><a href="{% url 'core:leave-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Leave Inbox</a></li>
+                        <li><a href="{% url 'core:leave-create' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Request Leave</a></li>
                         {% if company_name == 'HEW Corporate Lawyers' or company_name == 'MMC Capital' %}
-                        <li><a href="{% url 'core:food-portal' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Food Services</a></li>
+                        <li><a href="{% url 'core:food-portal' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Food Services</a></li>
                         {% endif %}
-                        <li><a href="{% url 'core:training-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Trainings</a></li>
-                        <li><a href="{% url 'core:appraisal-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Performance Appraisals</a></li>
-                        <li><a href="{% url 'core:policy-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Policy Hub</a></li>
+                        <li><a href="{% url 'core:training-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Trainings</a></li>
+                        <li><a href="{% url 'core:appraisal-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Performance Appraisals</a></li>
+                        <li><a href="{% url 'core:policy-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Policy Hub</a></li>
                         {% else %}
-                        <li><a href="{% url 'core:profile-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Employee Directory</a></li>
-                        <li><a href="{% url 'core:leave-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Leave Approvals</a></li>
+                        <li><a href="{% url 'core:profile-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Employee Directory</a></li>
+                        <li><a href="{% url 'core:leave-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Leave Approvals</a></li>
                         {% if company_name == 'HEW Corporate Lawyers' or company_name == 'MMC Capital' %}
-                        <li><a href="{% url 'core:food-portal' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Food Services</a></li>
+                        <li><a href="{% url 'core:food-portal' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Food Services</a></li>
                         {% endif %}
-                        <li><a href="{% url 'core:training-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Training Programs</a></li>
-                        <li><a href="{% url 'core:appraisal-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Performance Appraisals</a></li>
-                        <li><a href="{% url 'core:training-feedback-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Training Feedback</a></li>
-                        <li><a href="{% url 'core:policy-list' %}" class="block rounded-lg px-4 py-2.5 font-medium text-slate-100 hover:bg-slate-700">Policy Management</a></li>
+                        <li><a href="{% url 'core:training-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Training Programs</a></li>
+                        <li><a href="{% url 'core:appraisal-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Performance Appraisals</a></li>
+                        <li><a href="{% url 'core:training-feedback-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Training Feedback</a></li>
+                        <li><a href="{% url 'core:policy-list' %}" class="block rounded-xl px-4 py-2.5 font-medium text-slate-100 hover:bg-white/8">Policy Management</a></li>
                         {% endif %}
                     </ul>
                 </nav>
             </aside>
 
             <div class="flex flex-1 flex-col">
-                <header class="border-b border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 bg-white/85 shadow-[0_8px_24px_rgba(15,23,42,0.04)] backdrop-blur-sm">
                     <div class="flex items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
                         <div>
-                            <h1 class="text-2xl font-bold text-slate-900 sm:text-3xl">{{ dashboard_title }}</h1>
+                            <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ dashboard_title }}</h1>
                             {% if dashboard_subtitle %}
                             <p class="mt-1 text-sm text-slate-600">{{ dashboard_subtitle }}</p>
                             {% endif %}
                         </div>
-                        <div class="flex items-center gap-4 border-l border-slate-200 pl-4">
-                            <div class="text-right">
-                                <p class="text-sm font-semibold text-slate-700">{{ request.user.username }}</p>
-                                <p class="text-xs text-slate-500">{% if sidebar_role == 'employee' %}Employee{% elif sidebar_role == 'management' %}Management{% else %}Administrator{% endif %}</p>
-                            </div>
+                        <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
+                            {% if request.user.employeeprofile %}
+                            <a href="{% url 'core:profile-detail' request.user.employeeprofile.pk %}" class="profile-quick-link flex items-center gap-3 rounded-2xl px-2.5 py-2 text-left text-slate-700">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 text-teal-700 shadow-inner">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M20 21a8 8 0 0 0-16 0"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <div class="hidden sm:block">
+                                    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500">Profile</div>
+                                    <div class="text-sm font-semibold text-slate-800">{{ request.user.get_full_name|default:request.user.username }}</div>
+                                </div>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'core:profile-list' %}" class="profile-quick-link flex items-center gap-3 rounded-2xl px-2.5 py-2 text-left text-slate-700">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 text-teal-700 shadow-inner">
+                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M20 21a8 8 0 0 0-16 0"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <div class="hidden sm:block">
+                                    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500">Profile</div>
+                                    <div class="text-sm font-semibold text-slate-800">View profile</div>
+                                </div>
+                            </a>
+                            {% endif %}
                             <form method="post" action="{% url 'core:logout' %}">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-primary inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:shadow-md">
+                                <button type="submit" class="btn-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white hover:shadow-md">
                                     <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
                                     </svg>
@@ -259,12 +258,8 @@
                 <footer class="mt-auto">
                     <div class="border-t border-slate-200 px-4 py-6 sm:px-6 lg:px-8">
                         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                            <p class="text-xs text-slate-600">
-                                        &copy; 2026 All Rights Reserved
-                            </p>
-                            <p class="text-xs text-slate-600">
-                                        Developed by <span class="font-semibold text-teal-700">IT</span>
-                            </p>
+                            <p class="text-xs text-slate-600">&copy; 2026 All Rights Reserved</p>
+                            <p class="text-xs text-slate-600">Developed by <span class="font-semibold text-teal-700">IT</span></p>
                         </div>
                     </div>
                 </footer>

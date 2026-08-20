@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,35 @@ SECRET_KEY = 'django-insecure-t18#go-rw*u8(0u!)*94d)*&r)025y#@gt0jyu9t1c=ph-m7zn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+DEFAULT_ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if render_hostname:
+    DEFAULT_ALLOWED_HOSTS.append(render_hostname)
+    DEFAULT_ALLOWED_HOSTS.append('.onrender.com')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ','.join(DEFAULT_ALLOWED_HOSTS)).split(',')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host.strip()]
+
+csrf_origins = [
+    'https://localhost:8000',
+    'http://localhost:8000',
+    'https://127.0.0.1:8000',
+    'http://127.0.0.1:8000',
+    'https://*.onrender.com',
+]
+
+custom_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
+if custom_csrf_origins:
+    csrf_origins.extend(origin.strip() for origin in custom_csrf_origins.split(',') if origin.strip())
+
+if render_hostname:
+    csrf_origins.append(f'https://{render_hostname}')
+
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(csrf_origins))
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Application definition
 

@@ -1,60 +1,66 @@
 {% extends 'core/module_base.html' %}
 
 {% block module_content %}
-<div class="overflow-x-auto">
-    <table class="min-w-full table-fixed text-left text-sm">
-        <thead class="border-b border-slate-200 text-slate-600">
-            <tr>
-                <th class="px-3 py-2 w-24">Employee #</th>
-                <th class="px-3 py-2 w-48">Name</th>
-                <th class="px-3 py-2 w-40">Company</th>
-                <th class="px-3 py-2 w-48">Job Title</th>
-                <th class="px-3 py-2 w-32">Date of Birth</th>
-                <th class="px-3 py-2 w-32">Date Joined</th>
-                <th class="px-3 py-2 w-20">Dependents</th>
-                <th class="px-3 py-2 w-56">Email</th>
-                <th class="px-3 py-2 w-36">User Account</th>
-                <th class="px-3 py-2 w-32">Phone</th>
-                <th class="px-3 py-2 w-36">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr class="border-b border-slate-100 align-top">
-                <td class="px-3 py-2 truncate">{{ item.employee_number }}</td>
-                <td class="px-3 py-2 truncate">{{ item.full_name }}</td>
-                <td class="px-3 py-2 truncate">{{ item.company.name|default:'-' }}</td>
-                <td class="px-3 py-2 truncate">{{ item.job_title }}</td>
-                <td class="px-3 py-2">{{ item.date_of_birth|date:'d/m/Y'|default:'-' }}</td>
-                <td class="px-3 py-2">{{ item.date_joined|date:'d/m/Y'|default:'-' }}</td>
-                <td class="px-3 py-2">{{ item.dependents_count }}</td>
-                <td class="px-3 py-2 truncate break-words">{{ item.email }}</td>
-                <td class="px-3 py-2">
-                    {% if item.user %}
-                        <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 truncate">Linked: {{ item.user.username }}</span>
-                    {% else %}
-                        <div class="flex items-center gap-2">
-                            <a href="{% url 'core:profile-detail' item.pk %}" class="text-teal-700 hover:underline">Record</a>
-                            <a href="{% url 'core:profile-edit' item.pk %}" class="text-slate-700 hover:underline">Edit</a>
-                        </div>
-                    {% endif %}
-                </td>
-                <td class="px-3 py-2">{{ item.phone|default:'-' }}</td>
-                <td class="px-3 py-2">
-                    {% if is_hr %}
-                        <a href="{% url 'core:profile-edit' item.pk %}" class="text-slate-700 hover:underline">Edit</a>
-                        <a href="{% url 'core:profile-delete' item.pk %}" class="ml-3 text-rose-600 hover:underline">Delete</a>
-                    {% else %}
-                        <span class="text-slate-500">View Only</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="11" class="px-3 py-6 text-center text-slate-500">No profiles yet.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+    <div class="overflow-x-auto">
+        <table class="min-w-full table-fixed text-left text-sm">
+            <thead class="border-b border-slate-200 bg-slate-50 text-slate-600">
+                <tr>
+                    <th class="px-3 py-3 w-24 text-[11px] font-bold uppercase tracking-[0.16em]">Employee #</th>
+                    <th class="px-3 py-3 w-48 text-[11px] font-bold uppercase tracking-[0.16em]">Name</th>
+                    <th class="px-3 py-3 w-40 text-[11px] font-bold uppercase tracking-[0.16em]">Company</th>
+                    <th class="px-3 py-3 w-40 text-[11px] font-bold uppercase tracking-[0.16em]">Department</th>
+                    <th class="px-3 py-3 w-48 text-[11px] font-bold uppercase tracking-[0.16em]">Job Title</th>
+                    <th class="px-3 py-3 w-32 text-[11px] font-bold uppercase tracking-[0.16em]">DOB</th>
+                    <th class="px-3 py-3 w-32 text-[11px] font-bold uppercase tracking-[0.16em]">Joined</th>
+                    <th class="px-3 py-3 w-20 text-[11px] font-bold uppercase tracking-[0.16em]">Dependents</th>
+                    <th class="px-3 py-3 w-56 text-[11px] font-bold uppercase tracking-[0.16em]">Email</th>
+                    <th class="px-3 py-3 w-36 text-[11px] font-bold uppercase tracking-[0.16em]">User Account</th>
+                    <th class="px-3 py-3 w-32 text-[11px] font-bold uppercase tracking-[0.16em]">Phone</th>
+                    <th class="px-3 py-3 w-36 text-[11px] font-bold uppercase tracking-[0.16em]">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr class="border-b border-slate-100 align-top transition-colors hover:bg-slate-50/80">
+                    <td class="px-3 py-3 truncate font-medium text-slate-700">{{ item.employee_number }}</td>
+                    <td class="px-3 py-3 truncate font-semibold text-slate-900">{{ item.full_name }}</td>
+                    <td class="px-3 py-3 truncate text-slate-600">{{ item.company.name|default:'-' }}</td>
+                    <td class="px-3 py-3 truncate text-slate-600">{{ item.department|default:'-' }}</td>
+                    <td class="px-3 py-3 truncate text-slate-600">{{ item.job_title }}</td>
+                    <td class="px-3 py-3 text-slate-600">{{ item.date_of_birth|date:'d/m/Y'|default:'-' }}</td>
+                    <td class="px-3 py-3 text-slate-600">{{ item.date_joined|date:'d/m/Y'|default:'-' }}</td>
+                    <td class="px-3 py-3 text-slate-600">{{ item.dependents_count }}</td>
+                    <td class="px-3 py-3 truncate break-words text-slate-600">{{ item.email }}</td>
+                    <td class="px-3 py-3">
+                        {% if item.user %}
+                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-emerald-800">Linked</span>
+                        {% else %}
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'core:profile-detail' item.pk %}" class="text-teal-700 hover:text-teal-800 hover:underline">Record</a>
+                                <a href="{% url 'core:profile-edit' item.pk %}" class="text-slate-700 hover:text-slate-900 hover:underline">Edit</a>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-3 text-slate-600">{{ item.phone|default:'-' }}</td>
+                    <td class="px-3 py-3">
+                        {% if is_hr %}
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{% url 'core:profile-edit' item.pk %}" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50">Edit</a>
+                                <a href="{% url 'core:profile-delete' item.pk %}" class="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100">Delete</a>
+                            </div>
+                        {% else %}
+                            <span class="text-slate-500">View Only</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="px-3 py-10 text-center text-slate-500">No profiles yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

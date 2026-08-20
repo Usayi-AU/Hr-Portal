@@ -36,6 +36,7 @@ class EmployeeProfileForm(forms.ModelForm):
             'company',
             'employee_number',
             'full_name',
+            'department',
             'job_title',
             'date_of_birth',
             'date_joined',

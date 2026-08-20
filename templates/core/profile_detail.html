@@ -14,6 +14,7 @@
     <section class="rounded-2xl bg-white p-6 shadow-sm">
         <h2 class="mb-4 text-lg font-semibold text-slate-900">Personal Details</h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+            <div><span class="font-semibold text-slate-700">Department:</span> {{ profile.department|default:'-' }}</div>
             <div><span class="font-semibold text-slate-700">Job Title:</span> {{ profile.job_title }}</div>
             <div><span class="font-semibold text-slate-700">Date of Birth:</span> {{ profile.date_of_birth|date:'d/m/Y'|default:'-' }}</div>
             <div><span class="font-semibold text-slate-700">Date Joined:</span> {{ profile.date_joined|date:'d/m/Y'|default:'-' }}</div>

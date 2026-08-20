@@ -4,98 +4,134 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inteleego HR Portal</title>
+    <title>Intellego HR Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --intellego-teal: #0b7f85;
+            --intellego-deep: #07131f;
+            --intellego-gold: #d7b66d;
+            --intellego-muted: #5d7386;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background:
+                radial-gradient(circle at top, rgba(11, 127, 133, 0.12), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #eef7f8 100%);
+            color: #0f172a;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(233,248,249,0.9));
+            border: 1px solid rgba(11,127,133,0.1);
+            box-shadow: 0 20px 40px rgba(15,23,42,0.06);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        }
+
+        .hero-glow {
+            background: linear-gradient(135deg, rgba(11,127,133,0.08), rgba(215,182,109,0.12));
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--intellego-teal), var(--intellego-deep));
+            box-shadow: 0 18px 30px rgba(11, 127, 133, 0.18);
+        }
+
+        .secondary-btn {
+            border: 1px solid rgba(148, 163, 184, 0.8);
+            background: rgba(255,255,255,0.7);
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen bg-white text-gray-900">
-    <main class="flex-1 mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <!-- Header Section -->
+<body class="flex min-h-screen flex-col">
+    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
         <header class="mb-16 text-center">
-            <div class="mb-6">
-                <img src="{% static 'images/intellego.logo.png' %}" alt="Intellego logo" class="mx-auto mb-4 h-20 w-20 object-contain" />
-                <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl">Inteleego</h1>
-                <p class="mt-2 text-lg text-gray-600">Human Resources Management Portal</p>
+            <div class="brand-badge mx-auto mb-8 inline-flex items-center justify-center rounded-[28px] p-5">
+                <img src="{% static 'images/intellego.logo.png' %}" alt="Intellego logo" class="h-28 w-28 object-contain" />
             </div>
-            <p class="mx-auto max-w-2xl text-gray-700">
-                A comprehensive HR management system designed to streamline employee and administrative workflows.
+            <p class="text-[11px] font-semibold uppercase tracking-[0.35em] text-teal-700">Intellego</p>
+            <h1 class="mt-4 text-4xl font-black tracking-tight text-slate-900 sm:text-6xl">Human Resources Portal</h1>
+            <p class="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+                A modern HR management experience built to simplify employee services, approvals, and operations.
             </p>
+
             <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-                <a href="{% url 'core:employee-dashboard' %}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-8 py-3 font-semibold text-gray-900 transition-all hover:bg-gray-50 hover:shadow-md">
+                <a href="{% url 'core:employee-dashboard' %}" class="secondary-btn inline-flex items-center justify-center rounded-xl px-8 py-3 font-semibold text-slate-800 transition-all hover:-translate-y-0.5 hover:shadow-lg">
                     Employee Portal
                 </a>
-                <a href="{% url 'core:hr-dashboard' %}" class="inline-flex items-center justify-center rounded-lg bg-gray-900 px-8 py-3 font-semibold text-white transition-all hover:bg-gray-800 hover:shadow-md">
+                <a href="{% url 'core:hr-dashboard' %}" class="primary-btn inline-flex items-center justify-center rounded-xl px-8 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-xl">
                     HR Administration
                 </a>
             </div>
         </header>
 
-        <!-- Features Grid -->
         <section class="mb-16">
             <div class="mb-10 text-center">
-                <h2 class="text-3xl font-bold text-gray-900">System Modules</h2>
-                <p class="mt-3 text-gray-600">Comprehensive tools for efficient HR operations</p>
+                <h2 class="text-3xl font-bold text-slate-900">System Modules</h2>
+                <p class="mt-3 text-slate-600">Everything your team needs in one streamlined workspace.</p>
             </div>
             <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                <article class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                    <h3 class="mb-3 text-xl font-semibold text-gray-900">Employee Profiles</h3>
-                    <p class="text-gray-600">Manage personal information, contact details, and employment records.</p>
+                <article class="glass-card rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                    <div class="mb-4 inline-flex rounded-xl bg-teal-50 px-3 py-2 text-teal-700">Profiles</div>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-900">Employee Profiles</h3>
+                    <p class="text-slate-600">Manage employee records, departments, job roles, and employment details.</p>
                 </article>
-                <article class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                    <h3 class="mb-3 text-xl font-semibold text-gray-900">Leave Management</h3>
-                    <p class="text-gray-600">Submit leave requests, track balances, and manage attendance records.</p>
+                <article class="glass-card rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                    <div class="mb-4 inline-flex rounded-xl bg-amber-50 px-3 py-2 text-amber-700">Leave</div>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-900">Leave Management</h3>
+                    <p class="text-slate-600">Submit leave requests, review balances, and manage approvals with clarity.</p>
                 </article>
-                <article class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                    <h3 class="mb-3 text-xl font-semibold text-gray-900">Training Programs</h3>
-                    <p class="text-gray-600">Browse available training courses and track professional development.</p>
+                <article class="glass-card rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                    <div class="mb-4 inline-flex rounded-xl bg-sky-50 px-3 py-2 text-sky-700">Training</div>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-900">Training Programs</h3>
+                    <p class="text-slate-600">Track learning initiatives and keep development programs organized.</p>
                 </article>
-                <article class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                    <h3 class="mb-3 text-xl font-semibold text-gray-900">Policy Documents</h3>
-                    <p class="text-gray-600">Access company policies, procedures, and organizational guidelines.</p>
+                <article class="glass-card rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                    <div class="mb-4 inline-flex rounded-xl bg-violet-50 px-3 py-2 text-violet-700">Policies</div>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-900">Policy Documents</h3>
+                    <p class="text-slate-600">Access and manage the latest company policies and operational guidance.</p>
                 </article>
-                <article class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                    <h3 class="mb-3 text-xl font-semibold text-gray-900">Food Services</h3>
-                    <p class="text-gray-600">View weekly menus, place orders, and provide service feedback.</p>
+                <article class="glass-card rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                    <div class="mb-4 inline-flex rounded-xl bg-emerald-50 px-3 py-2 text-emerald-700">Food</div>
+                    <h3 class="mb-3 text-xl font-semibold text-slate-900">Food Services</h3>
+                    <p class="text-slate-600">View menus, place orders, and share feedback across available services.</p>
                 </article>
             </div>
         </section>
 
-        <!-- Stats Section -->
-        <section class="rounded-lg border border-gray-200 bg-gray-50 p-8">
-            <h2 class="mb-8 text-center text-2xl font-bold text-gray-900">System Features</h2>
+        <section class="hero-glow rounded-[28px] border border-slate-200 p-8">
+            <h2 class="mb-8 text-center text-2xl font-bold text-slate-900">Why teams use the portal</h2>
             <div class="grid gap-6 sm:grid-cols-3">
                 <div class="text-center">
-                    <p class="text-2xl font-bold text-gray-900">Secure</p>
-                    <p class="mt-2 text-sm text-gray-600">Enterprise-grade security</p>
+                    <p class="text-3xl font-black text-slate-900">Secure</p>
+                    <p class="mt-2 text-sm text-slate-600">Protected employee workflows and approvals.</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-2xl font-bold text-gray-900">Reliable</p>
-                    <p class="mt-2 text-sm text-gray-600">24/7 system availability</p>
+                    <p class="text-3xl font-black text-slate-900">Fast</p>
+                    <p class="mt-2 text-sm text-slate-600">Quick navigation across HR operations.</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-2xl font-bold text-gray-900">Scalable</p>
-                    <p class="mt-2 text-sm text-gray-600">Built for growth</p>
+                    <p class="text-3xl font-black text-slate-900">Flexible</p>
+                    <p class="mt-2 text-sm text-slate-600">Built for employees, managers, and HR admins.</p>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-200 bg-gray-900 px-4 py-8 text-center text-gray-300 sm:px-6 lg:px-8">
+    <footer class="border-t border-slate-200 bg-slate-900 px-4 py-8 text-center text-slate-300 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-6xl">
-            <div class="mb-4">
-                <span class="text-lg font-bold text-white">Inteleego</span>
+            <div class="mb-3 flex justify-center">
+                <img src="{% static 'images/intellego.logo.png' %}" alt="Intellego logo" class="h-11 w-11 object-contain" />
             </div>
-            <p class="text-sm">
-                &copy; 2026 All Rights Reserved.
-            </p>
-            <p class="mt-2 text-xs text-gray-500">
-                Developed by IT Department
-            </p>
+            <p class="text-sm">&copy; 2026 All Rights Reserved.</p>
+            <p class="mt-2 text-xs text-slate-400">Developed by IT Department</p>
         </div>
     </footer>
 </body>

@@ -18,6 +18,7 @@ class EmployeeProfile(models.Model):
 	company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True)
 	employee_number = models.CharField(max_length=20, unique=True)
 	full_name = models.CharField(max_length=150)
+	department = models.CharField(max_length=120, blank=True)
 	job_title = models.CharField(max_length=120)
 	date_of_birth = models.DateField(null=True, blank=True)
 	date_joined = models.DateField(null=True, blank=True)
