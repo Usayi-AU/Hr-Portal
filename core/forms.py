@@ -19,8 +19,24 @@ class EmployeeProfileForm(forms.ModelForm):
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),
         required=False,
-        empty_label="Select user (optional)",
-        help_text="Link this profile to a system user account. Leave blank if the employee doesn't have an account yet."
+        empty_label="Select existing user (optional)",
+        help_text="Link this profile to an existing system user account. Leave blank if you are creating a new employee login below."
+    )
+    new_username = forms.CharField(
+        required=False,
+        max_length=150,
+        help_text="Create a new login username for this employee if they do not already have a portal account."
+    )
+    new_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput,
+        strip=False,
+        help_text="Set a secure password for the employee portal login."
+    )
+    user_role = forms.ChoiceField(
+        choices=[('employee', 'Employee'), ('management', 'Management'), ('hr', 'HR')],
+        initial='employee',
+        help_text="Select which dashboard this user should access after login."
     )
 
     email = forms.CharField(
@@ -68,8 +84,24 @@ class EmployeeProfileForm(forms.ModelForm):
         company = cleaned.get('company')
         email = cleaned.get('email')
         user = cleaned.get('user')
+        new_username = (cleaned.get('new_username') or '').strip()
+        new_password = cleaned.get('new_password') or ''
 
-        # Map company to canonical email domain
+        if not user and not new_username:
+            raise forms.ValidationError('Select an existing user or create a new employee username below.')
+
+        if new_username:
+            if User.objects.filter(username=new_username).exists():
+                raise forms.ValidationError('This username is already in use. Choose a different one.')
+            if len(new_password) < 8:
+                raise forms.ValidationError('New employee passwords must be at least 8 characters long.')
+
+        if user and (new_username or new_password):
+            raise forms.ValidationError('Choose either an existing user or a new account, not both.')
+
+        if user and not email:
+            cleaned['email'] = f"{user.username}@{company.name.lower().replace(' ', '') if company else ''}"
+
         domain_map = {
             'Intellego Investment Consultants': '@intellego-ic.com',
             'HEW Corporate Lawyers': '@hewcorplaw.com',
@@ -80,14 +112,12 @@ class EmployeeProfileForm(forms.ModelForm):
             domain = domain_map.get(company.name)
             if domain:
                 if email:
-                    # normalize local part and enforce company domain
                     if '@' in email:
                         local = email.split('@')[0]
                     else:
                         local = email
                     cleaned['email'] = f"{local}{domain}"
                 elif user:
-                    # if no email provided, build from username
                     cleaned['email'] = f"{user.username}{domain}"
 
         return cleaned

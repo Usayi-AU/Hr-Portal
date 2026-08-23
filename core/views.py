@@ -5,9 +5,10 @@ import os
 
 from django.conf import settings
 
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.views import LoginView
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import Group, User
+from django.contrib.auth.views import LoginView
 from django.db.models import Count, Q
 from django.db.models.functions import ExtractWeekDay
 from django.http import HttpResponse
@@ -417,6 +418,36 @@ class EmployeeProfileCreateView(HRRequiredMixin, ModuleFormContextMixin, CreateV
 			form.fields['company'].queryset = Company.objects.filter(pk=company.pk)
 			form.fields['company'].initial = company
 		return form
+
+	def form_valid(self, form):
+		selected_user = form.cleaned_data.get('user')
+		new_username = (form.cleaned_data.get('new_username') or '').strip()
+		new_password = form.cleaned_data.get('new_password') or ''
+		role = form.cleaned_data.get('user_role', 'employee')
+
+		if selected_user is None and new_username:
+			selected_user = User.objects.create_user(
+				username=new_username,
+				password=new_password,
+				email=form.cleaned_data.get('email') or '',
+			)
+
+		if selected_user:
+			form.instance.user = selected_user
+			hr_group, _ = Group.objects.get_or_create(name='HR')
+			management_group, _ = Group.objects.get_or_create(name='Management')
+			selected_user.groups.remove(*selected_user.groups.filter(name__in=['HR', 'Management']).values_list('id', flat=True))
+			if role == 'hr':
+				selected_user.is_staff = True
+				selected_user.groups.add(hr_group)
+			elif role == 'management':
+				selected_user.is_staff = False
+				selected_user.groups.add(management_group)
+			else:
+				selected_user.is_staff = False
+			selected_user.save(update_fields=['is_staff'])
+
+		return super().form_valid(form)
 
 
 class EmployeeProfileUpdateView(HRRequiredMixin, ModuleFormContextMixin, UpdateView):
