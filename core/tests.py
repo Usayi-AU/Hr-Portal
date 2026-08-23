@@ -23,3 +23,8 @@ class EmployeeProfileDepartmentTests(SimpleTestCase):
     def test_employee_profile_has_department_field_and_form_includes_it(self):
         self.assertIsNotNone(EmployeeProfile._meta.get_field('department'))
         self.assertIn('department', EmployeeProfileForm().fields)
+
+
+class LeaveBalanceTests(SimpleTestCase):
+    def test_employee_profile_has_live_leave_balance_field(self):
+        self.assertIsNotNone(EmployeeProfile._meta.get_field('leave_days_balance'))

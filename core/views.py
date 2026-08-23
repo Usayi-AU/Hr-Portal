@@ -49,6 +49,13 @@ from .models import (
 )
 
 PAYSLIP_ACCESS_CODE = '12345'
+INTELLEGO_ALERT_USERS = {
+    'tinotenda.gakanje',
+    'tariro.baramasimbe',
+    'tatenda.mashonganyika',
+    'isaac.isaki',
+    'welcome',
+}
 
 
 def is_hr_user(user):
@@ -81,6 +88,26 @@ def get_company_employee_queryset(user):
 	if company:
 		return queryset.filter(company=company)
 	return queryset
+
+
+def get_intellego_leave_alerts(user):
+	if not user or not user.is_authenticated:
+		return []
+	company = get_user_company(user)
+	if not company or company.name.lower() != 'intellego investment consultants':
+		return []
+	if user.username.lower() not in {name.lower() for name in INTELLEGO_ALERT_USERS} and not is_management_user(user):
+		return []
+	cutoff = timezone.localtime() - timedelta(days=5)
+	alerts = []
+	for leave in LeaveRequest.objects.filter(
+		employee__company=company,
+		status__in=[LeaveRequest.Status.PENDING, LeaveRequest.Status.FORWARDED, LeaveRequest.Status.APPROVED, LeaveRequest.Status.REJECTED],
+	).select_related('employee', 'reviewed_by').order_by('-created_at'):
+		if leave.reviewed_at and leave.reviewed_at <= cutoff:
+			continue
+		alerts.append(leave)
+	return alerts[:6]
 
 
 def get_active_menu_item_for_weekday(weekday):
@@ -219,6 +246,7 @@ def employee_dashboard(request):
 	).count()
 	training_feedback_count = TrainingFeedback.objects.filter(submitted_by=request.user).count()
 	appraisal_documents_count = AppraisalDocument.objects.filter(employee=employee_profile).count() if employee_profile else 0
+	intellego_leave_alerts = get_intellego_leave_alerts(request.user)
 
 	return render(
 		request,
@@ -234,6 +262,8 @@ def employee_dashboard(request):
 			'food_orders_this_week': food_orders_this_week,
 			'training_feedback_count': training_feedback_count,
 			'appraisal_documents_count': appraisal_documents_count,
+			'intellego_leave_alerts': intellego_leave_alerts,
+			'leave_balance': employee_profile.leave_days_balance if employee_profile else 0,
 		},
 	)
 
@@ -250,6 +280,7 @@ def management_dashboard(request):
 		employee__management_approver=request.user,
 	).select_related('employee', 'reviewed_by').order_by('-created_at')
 	company = get_user_company(request.user)
+	intellego_leave_alerts = get_intellego_leave_alerts(request.user)
 	return render(
 		request,
 		'core/management_dashboard.html',
@@ -264,6 +295,7 @@ def management_dashboard(request):
 			'rejected_reviews': assigned_requests.filter(status=LeaveRequest.Status.REJECTED).count(),
 			'total_assigned_requests': assigned_requests.count(),
 			'recent_requests': assigned_requests[:8],
+			'intellego_leave_alerts': intellego_leave_alerts,
 		},
 	)
 
@@ -276,6 +308,19 @@ def hr_dashboard(request):
 
 	company = get_user_company(request.user)
 	company_employees = get_company_employee_queryset(request.user)
+	if request.method == 'POST':
+		for employee in company_employees:
+			field_name = f'leave_balance_{employee.pk}'
+			if field_name in request.POST:
+				value = request.POST.get(field_name, '0').strip()
+				try:
+					employee.leave_days_balance = max(0, int(value))
+				except ValueError:
+					continue
+				employee.save(update_fields=['leave_days_balance'])
+		messages.success(request, 'Leave balances updated successfully.')
+		company_employees = get_company_employee_queryset(request.user)
+
 	company_leave_requests = LeaveRequest.objects.filter(employee__company=company) if company else LeaveRequest.objects.none()
 	company_training_feedback = TrainingFeedback.objects.filter(employee__company=company) if company else TrainingFeedback.objects.none()
 	company_appraisals = AppraisalDocument.objects.filter(employee__company=company) if company else AppraisalDocument.objects.none()
@@ -456,6 +501,8 @@ class LeaveRequestCreateView(ModuleFormContextMixin, CreateView):
 				form.fields['employee'].queryset = EmployeeProfile.objects.filter(pk=profile.pk)
 				form.fields['employee'].initial = profile
 				form.fields['employee'].widget = form.fields['employee'].hidden_widget()
+				if profile.leave_days_balance is not None:
+					form.fields['leave_days_balance'].initial = profile.leave_days_balance
 			if 'status' in form.fields:
 				del form.fields['status']
 			for field_name in [
@@ -484,6 +531,8 @@ class LeaveRequestCreateView(ModuleFormContextMixin, CreateView):
 				return redirect('core:profile-list')
 			form.instance.employee = profile
 			form.instance.status = LeaveRequest.Status.PENDING
+		if form.instance.employee_id and form.instance.leave_days_balance is None:
+			form.instance.leave_days_balance = form.instance.employee.leave_days_balance
 		return super().form_valid(form)
 
 
@@ -541,9 +590,14 @@ class LeaveRequestDecisionView(ModuleFormContextMixin, UpdateView):
 	def form_valid(self, form):
 		form.instance.reviewed_by = self.request.user
 		form.instance.reviewed_at = timezone.now()
-		if form.instance.status == LeaveRequest.Status.APPROVED and not form.instance.authorized_by:
+		if form.instance.status == LeaveRequest.Status.APPROVED:
 			form.instance.authorized_by = self.request.user.get_full_name() or self.request.user.username
 			form.instance.authorized_date = timezone.localdate()
+			signature_choice = form.cleaned_data.get('signature_choice')
+			if signature_choice:
+				form.instance.authorized_signature = signature_choice
+			elif getattr(form.instance.employee, 'company', None) and form.instance.employee.company.name.lower() == 'intellego investment consultants':
+				form.instance.authorized_signature = 'welcome.png'
 		return super().form_valid(form)
 
 
@@ -1080,21 +1134,28 @@ def download_leave_request_pdf(request, pk):
 	)
 
 	styles = getSampleStyleSheet()
-	styles.add(ParagraphStyle(name='FormTitle', fontSize=20, leading=24, spaceAfter=12, alignment=1, textColor=colors.HexColor('#0f172a')))
-	styles.add(ParagraphStyle(name='FieldLabel', fontSize=10, leading=12, textColor=colors.HexColor('#334155'), spaceAfter=2))
+	styles.add(ParagraphStyle(name='CorporateTitle', fontSize=20, leading=24, spaceAfter=6, alignment=1, textColor=colors.HexColor('#0f172a')))
+	styles.add(ParagraphStyle(name='CorporateSubtitle', fontSize=9, leading=12, spaceAfter=12, alignment=1, textColor=colors.HexColor('#475569')))
+	styles.add(ParagraphStyle(name='FieldLabel', fontSize=10, leading=12, textColor=colors.HexColor('#334155'), spaceAfter=2, fontName='Helvetica-Bold'))
 	styles.add(ParagraphStyle(name='FieldValue', fontSize=10, leading=14, textColor=colors.HexColor('#0f172a')))
 	styles.add(ParagraphStyle(name='Note', fontSize=9, leading=11, textColor=colors.HexColor('#475569'), spaceAfter=8))
 
 	content = []
+	company_name = leave.employee.company.name if leave.employee and leave.employee.company else 'Company'
+	company_logo = None
 	if leave.employee and leave.employee.company:
 		logo_file = f"{leave.employee.company.name.lower()}.logo.png"
 		logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', logo_file)
 		if os.path.exists(logo_path):
-			logo = Image(logo_path, width=50*mm, height=20*mm)
-			content.append(logo)
-			content.append(Spacer(1, 12))
-	content.append(Paragraph('Leave Request Form', styles['FormTitle']))
-	content.append(Spacer(1, 12))
+			company_logo = Image(logo_path, width=45*mm, height=18*mm)
+		elif os.path.exists(os.path.join(settings.BASE_DIR, 'static', 'images', 'intellego.logo.png')):
+			company_logo = Image(os.path.join(settings.BASE_DIR, 'static', 'images', 'intellego.logo.png'), width=45*mm, height=18*mm)
+	if company_logo:
+		content.append(company_logo)
+		content.append(Spacer(1, 6))
+	content.append(Paragraph('Leave Request Form', styles['CorporateTitle']))
+	content.append(Paragraph(f'{company_name} | Employee Leave Application', styles['CorporateSubtitle']))
+	content.append(Spacer(1, 8))
 
 	def safe_text(value):
 		return str(value) if value is not None else ''
@@ -1105,35 +1166,44 @@ def download_leave_request_pdf(request, pk):
 	def format_datetime(value):
 		return value.strftime('%d/%m/%Y %H:%M') if value else ''
 
+	def signature_image_path(signature_name):
+		if not signature_name:
+			return None
+		clean_name = str(signature_name).strip()
+		candidates = [clean_name]
+		if clean_name.lower().endswith('.png'):
+			candidates.append(clean_name.lower())
+		for candidate in candidates:
+			candidate_path = os.path.join(settings.BASE_DIR, 'static', 'images', candidate)
+			if os.path.exists(candidate_path):
+				return candidate_path
+		return None
+
 	fields = [
 		['Employee Name', leave.employee.full_name if leave.employee else ''],
 		['Employee Number', leave.employee.employee_number if leave.employee else ''],
-		['Company', leave.employee.company.name if leave.employee and leave.employee.company else ''],
+		['Company', company_name],
 		['Job Title', leave.employee.job_title if leave.employee else ''],
 		['Leave Type', leave.get_leave_type_display()],
 		['Start Date', format_date(leave.start_date)],
 		['End Date', format_date(leave.end_date)],
 		['Reason for Leave', leave.reason or ''],
 		['Total Leave Days Taken', safe_text(leave.total_leave_days_taken)],
-		['Total Leave Days Accrued', safe_text(leave.total_leave_days_accrued)],
 		['Leave Balance', safe_text(leave.leave_days_balance)],
 		['Qualifies for Leave', leave.get_qualifies_for_leave_display() if leave.qualifies_for_leave else ''],
 		['Qualification Reason', leave.qualification_reason or ''],
 		['Status', leave.get_status_display()],
-		['Reviewed By', leave.reviewed_by.get_full_name() if leave.reviewed_by else ''],
-		['Reviewed At', format_datetime(leave.reviewed_at)],
 		['Applicant Signed Date', format_date(leave.applicant_signed_date)],
 		['Applicant Signature', leave.applicant_signature or ''],
 		['Authorized Date', format_date(leave.authorized_date)],
-		['Authorized By', leave.authorized_by or ''],
-		['Authorized Signature', leave.authorized_signature or ''],
+		['Approved By', leave.authorized_by or ''],
 	]
 
 	table_data = []
 	for label, value in fields:
 		table_data.append([
 			Paragraph(f'<b>{label}</b>', styles['FieldLabel']),
-			Paragraph(value.replace('\n', '<br/>'), styles['FieldValue']),
+			Paragraph(str(value).replace('\n', '<br/>'), styles['FieldValue']),
 		])
 
 	table = Table(table_data, colWidths=[55 * mm, 115 * mm], hAlign='LEFT')
@@ -1141,8 +1211,8 @@ def download_leave_request_pdf(request, pk):
 		('VALIGN', (0, 0), (-1, -1), 'TOP'),
 		('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#0f172a')),
 		('LINEBELOW', (0, -1), (-1, -1), 1, colors.HexColor('#0f172a')),
-		('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor('#cbd5e1')),
-		('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+		('INNERGRID', (0, 0), (-1, -1), 0.25, colors.HexColor('#dbe4ee')),
+		('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#dbe4ee')),
 		('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f8fafc')),
 		('BACKGROUND', (0, 1), (-1, -1), colors.white),
 		('LEFTPADDING', (0, 0), (-1, -1), 6),
@@ -1150,15 +1220,34 @@ def download_leave_request_pdf(request, pk):
 		('BOTTOMPADDING', (0, 0), (-1, -1), 6),
 		('TOPPADDING', (0, 0), (-1, -1), 6),
 	]))
-
 	content.append(table)
-	if leave.employee and leave.employee.company and leave.employee.company.name.lower() == 'intellego' and leave.authorized_by == 'Welcome.Mavingire':
-		sig_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'welcome.png')
-		if os.path.exists(sig_path):
-			content.append(Spacer(1, 12))
-			content.append(Paragraph('Authorized Signature:', styles['FieldLabel']))
-			sig = Image(sig_path, width=50*mm, height=20*mm)
-			content.append(sig)
+
+	sig_path = signature_image_path(leave.authorized_signature)
+	if sig_path or leave.authorized_by:
+		content.append(Spacer(1, 12))
+		approval_table = Table([
+			[
+				Paragraph('Approved Signature', styles['FieldLabel']),
+				Paragraph('Approval Stamp', styles['FieldLabel']) if not sig_path else Paragraph('', styles['FieldLabel'])
+			]
+		], colWidths=[70 * mm, 100 * mm], hAlign='LEFT')
+		approval_table.setStyle(TableStyle([
+			('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+			('GRID', (0, 0), (-1, -1), 0.25, colors.HexColor('#dbe4ee')),
+			('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8fafc')),
+			('LEFTPADDING', (0, 0), (-1, -1), 8),
+			('RIGHTPADDING', (0, 0), (-1, -1), 8),
+			('TOPPADDING', (0, 0), (-1, -1), 8),
+			('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+		]))
+		content.append(approval_table)
+		if sig_path:
+			content.append(Spacer(1, 6))
+			content.append(Image(sig_path, width=38*mm, height=14*mm))
+		else:
+			content.append(Spacer(1, 6))
+			content.append(Paragraph(leave.authorized_signature or leave.authorized_by or 'Approved', styles['FieldValue']))
+
 	doc.build(content)
 	buffer.seek(0)
 

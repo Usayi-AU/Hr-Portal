@@ -38,6 +38,7 @@ class EmployeeProfileForm(forms.ModelForm):
             'full_name',
             'department',
             'job_title',
+            'leave_days_balance',
             'date_of_birth',
             'date_joined',
             'dependents_count',
@@ -93,6 +94,20 @@ class EmployeeProfileForm(forms.ModelForm):
 
 
 class LeaveRequestForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['leave_days_balance'].widget.attrs['readonly'] = True
+        self.fields['leave_days_balance'].help_text = 'Automatically updated from the employee availability on the portal.'
+
+        if self.instance and self.instance.employee_id:
+            self.fields['leave_days_balance'].initial = self.instance.employee.leave_days_balance
+        elif self.data.get('employee'):
+            try:
+                employee = EmployeeProfile.objects.get(pk=self.data.get('employee'))
+                self.fields['leave_days_balance'].initial = employee.leave_days_balance
+            except EmployeeProfile.DoesNotExist:
+                pass
+
     class Meta:
         model = LeaveRequest
         fields = [
@@ -127,6 +142,7 @@ class LeaveRequestForm(forms.ModelForm):
         start_date = cleaned.get('start_date')
         end_date = cleaned.get('end_date')
         requested_days = cleaned.get('requested_days')
+        employee = cleaned.get('employee')
 
         if start_date and end_date and start_date > end_date:
             raise forms.ValidationError('End date must be on or after start date.')
@@ -134,10 +150,24 @@ class LeaveRequestForm(forms.ModelForm):
         if not requested_days and start_date and end_date:
             cleaned['requested_days'] = (end_date - start_date).days + 1
 
+        if employee:
+            cleaned['leave_days_balance'] = employee.leave_days_balance
+
         return cleaned
 
 
 class ManagementLeaveDecisionForm(forms.ModelForm):
+    signature_choice = forms.ChoiceField(
+        choices=[
+            ('', 'No signature selected'),
+            ('welcome.png', 'Welcome'),
+            ('isaac.png', 'Isaac'),
+        ],
+        required=False,
+        label='Management Signature',
+        help_text='Apply the selected signature to the leave approval.',
+    )
+
     class Meta:
         model = LeaveRequest
         fields = ['status', 'management_comment']

@@ -20,6 +20,7 @@ class EmployeeProfile(models.Model):
 	full_name = models.CharField(max_length=150)
 	department = models.CharField(max_length=120, blank=True)
 	job_title = models.CharField(max_length=120)
+	leave_days_balance = models.PositiveIntegerField(default=0)
 	date_of_birth = models.DateField(null=True, blank=True)
 	date_joined = models.DateField(null=True, blank=True)
 	dependents_count = models.PositiveIntegerField(default=0)
