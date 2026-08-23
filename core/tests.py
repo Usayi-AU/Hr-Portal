@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import Group, User
-from django.test import Client, TestCase
+from django.core import mail
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.forms import EmployeeProfileForm
@@ -30,6 +31,67 @@ class EmployeeProfileDepartmentTests(TestCase):
 class LeaveBalanceTests(TestCase):
     def test_employee_profile_has_live_leave_balance_field(self):
         self.assertIsNotNone(EmployeeProfile._meta.get_field('leave_days_balance'))
+
+
+class LeaveWorkflowEmailTests(TestCase):
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_employee_leave_submission_sends_hr_notification_using_profile_email(self):
+        company, _ = Company.objects.get_or_create(name='Intellego Investment Consultants')
+        hr_group, _ = Group.objects.get_or_create(name='HR')
+
+        employee_user = User.objects.create_user(username='employee.leave', email='employee.profile@example.com', password='StrongPass123!')
+        employee_profile = EmployeeProfile.objects.create(
+            user=employee_user,
+            company=company,
+            employee_number='INT-2001',
+            full_name='Jane Smith',
+            department='Operations',
+            job_title='Coordinator',
+            email='employee.profile@example.com',
+            leave_days_balance=20,
+            dependents_count=0,
+        )
+        employee_user.email = employee_profile.email
+        employee_user.save(update_fields=['email'])
+
+        hr_user = User.objects.create_user(username='hr.leave', email='hr.profile@example.com', password='StrongPass123!')
+        hr_user.groups.add(hr_group)
+        hr_user.is_staff = True
+        hr_user.save()
+        EmployeeProfile.objects.create(
+            user=hr_user,
+            company=company,
+            employee_number='INT-HR-2001',
+            full_name='HR Admin',
+            department='HR',
+            job_title='HR Manager',
+            email='hr.profile@example.com',
+            leave_days_balance=20,
+            dependents_count=0,
+        )
+
+        client = Client()
+        client.force_login(employee_user)
+
+        response = client.post(
+            reverse('core:leave-create'),
+            {
+                'leave_type': 'vacation',
+                'requested_days': 3,
+                'start_date': '2026-09-01',
+                'end_date': '2026-09-03',
+                'reason': 'Family leave',
+                'leave_days_balance': 20,
+                'employee': employee_profile.pk,
+                'status': 'pending',
+            },
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(any('Jane Smith has submitted a leave request' in message.subject for message in mail.outbox))
+        self.assertIn('hr.profile@example.com', [to for message in mail.outbox for to in message.to])
+        self.assertTrue(any('https://hr-portal-xguc.onrender.com/' in message.body for message in mail.outbox))
 
 
 class EmployeeUserCreationTests(TestCase):

@@ -50,6 +50,7 @@ from .models import (
 )
 
 PAYSLIP_ACCESS_CODE = '12345'
+PORTAL_BASE_URL = getattr(settings, 'PORTAL_BASE_URL', 'https://hr-portal-xguc.onrender.com/')
 INTELLEGO_ALERT_USERS = {
     'tinotenda.gakanje',
     'tariro.baramasimbe',
@@ -57,6 +58,79 @@ INTELLEGO_ALERT_USERS = {
     'isaac.isaki',
     'welcome',
 }
+
+
+def get_profile_email(user):
+	if not user:
+		return ''
+	if user.email:
+		return user.email
+	profile = get_user_employee_profile(user)
+	return profile.email if profile and profile.email else ''
+
+
+def get_company_hr_users(company):
+	if not company:
+		return User.objects.none()
+	return User.objects.filter(
+		employeeprofile__company=company,
+	).filter(
+		Q(groups__name='HR') | Q(is_staff=True) | Q(employeeprofile__job_title__icontains='HR')
+	).distinct()
+
+
+def send_leave_email(subject, message, recipients):
+	recipients = [recipient for recipient in recipients if recipient]
+	if not recipients:
+		return
+	from django.core.mail import send_mail
+	for recipient in recipients:
+		send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=True)
+
+
+def notify_hr_of_leave_submission(leave_request):
+	company = leave_request.employee.company
+	hr_users = get_company_hr_users(company)
+	recipient_emails = []
+	for user in hr_users:
+		email = get_profile_email(user)
+		if email:
+			recipient_emails.append(email)
+	if not recipient_emails:
+		return
+	name = leave_request.employee.full_name
+	subject = f"{name} has submitted a leave request"
+	message = (
+		f"{name} has submitted a leave request.\n\n"
+		f"Leave type: {leave_request.get_leave_type_display()}\n"
+		f"Requested days: {leave_request.requested_days or 'N/A'}\n"
+		f"Start date: {leave_request.start_date}\n"
+		f"End date: {leave_request.end_date}\n"
+		f"Reason: {leave_request.reason or 'Not provided'}\n\n"
+		f"Please log in to the portal to review this request: {PORTAL_BASE_URL}"
+	)
+	send_leave_email(subject, message, recipient_emails)
+
+
+def notify_management_of_forwarded_leave(leave_request):
+	management_user = leave_request.employee.management_approver
+	if not management_user:
+		return
+	email = get_profile_email(management_user)
+	if not email:
+		return
+	name = leave_request.employee.full_name
+	subject = f"Leave request forwarded for review: {name}"
+	message = (
+		f"A leave request submitted by {name} has been forwarded to management for review.\n\n"
+		f"Leave type: {leave_request.get_leave_type_display()}\n"
+		f"Requested days: {leave_request.requested_days or 'N/A'}\n"
+		f"Start date: {leave_request.start_date}\n"
+		f"End date: {leave_request.end_date}\n"
+		f"Reason: {leave_request.reason or 'Not provided'}\n\n"
+		f"Please log in to the portal to review this request: {PORTAL_BASE_URL}"
+	)
+	send_leave_email(subject, message, [email])
 
 
 def is_hr_user(user):
@@ -434,6 +508,7 @@ class EmployeeProfileCreateView(HRRequiredMixin, ModuleFormContextMixin, CreateV
 
 		if selected_user:
 			form.instance.user = selected_user
+			selected_user.email = form.cleaned_data.get('email') or selected_user.email
 			hr_group, _ = Group.objects.get_or_create(name='HR')
 			management_group, _ = Group.objects.get_or_create(name='Management')
 			selected_user.groups.remove(*selected_user.groups.filter(name__in=['HR', 'Management']).values_list('id', flat=True))
@@ -445,7 +520,7 @@ class EmployeeProfileCreateView(HRRequiredMixin, ModuleFormContextMixin, CreateV
 				selected_user.groups.add(management_group)
 			else:
 				selected_user.is_staff = False
-			selected_user.save(update_fields=['is_staff'])
+			selected_user.save(update_fields=['is_staff', 'email'])
 
 		return super().form_valid(form)
 
@@ -564,7 +639,10 @@ class LeaveRequestCreateView(ModuleFormContextMixin, CreateView):
 			form.instance.status = LeaveRequest.Status.PENDING
 		if form.instance.employee_id and form.instance.leave_days_balance is None:
 			form.instance.leave_days_balance = form.instance.employee.leave_days_balance
-		return super().form_valid(form)
+		response = super().form_valid(form)
+		if form.instance.pk and form.instance.employee_id:
+			notify_hr_of_leave_submission(form.instance)
+		return response
 
 
 class LeaveRequestUpdateView(HRRequiredMixin, ModuleFormContextMixin, UpdateView):
@@ -659,6 +737,7 @@ def forward_leave_to_management(request, pk):
 		leave.reviewed_by = None
 		leave.reviewed_at = None
 		leave.save(update_fields=['status', 'management_comment', 'reviewed_by', 'reviewed_at'])
+		notify_management_of_forwarded_leave(leave)
 		messages.success(request, 'Leave request forwarded to management.')
 	return redirect('core:leave-list')
 

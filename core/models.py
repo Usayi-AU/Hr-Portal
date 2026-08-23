@@ -33,6 +33,14 @@ class EmployeeProfile(models.Model):
 	pension_contribution_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 	employment_history = models.TextField(blank=True)
 
+	def save(self, *args, **kwargs):
+		super().save(*args, **kwargs)
+		if self.user_id and self.email:
+			user = self.user
+			if user.email != self.email:
+				user.email = self.email
+				user.save(update_fields=['email'])
+
 	def __str__(self):
 		return f"{self.employee_number} - {self.full_name}"
 
