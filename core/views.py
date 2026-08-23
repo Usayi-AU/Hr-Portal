@@ -85,7 +85,7 @@ def send_leave_email(subject, message, recipients):
 		return
 	from django.core.mail import send_mail
 	for recipient in recipients:
-		send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=True)
+		send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=False)
 
 
 def notify_hr_of_leave_submission(leave_request):

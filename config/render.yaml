@@ -27,6 +27,27 @@ services:
   * key: PYTHON_VERSION
     value: "3.11.9"
 
+  * key: EMAIL_HOST
+    value: "smtp.office365.com"
+
+  * key: EMAIL_PORT
+    value: "587"
+
+  * key: EMAIL_USE_TLS
+    value: "True"
+
+  * key: EMAIL_HOST_USER
+    value: "REPLACE_WITH_REAL_SENDING_ACCOUNT@intellego-ic.com"
+
+  * key: DEFAULT_FROM_EMAIL
+    value: "hr@intellego-ic.com"
+
+  * key: PORTAL_BASE_URL
+    value: "https://hr-portal-xguc.onrender.com/"
+
+  * key: EMAIL_HOST_PASSWORD
+    value: "REPLACE_WITH_REAL_SENDING_ACCOUNT_PASSWORD_OR_APP_PASSWORD"
+
 databases:
 
 * name: hr-portal-db
