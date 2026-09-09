@@ -1,4 +1,5 @@
 import csv
+import logging
 from datetime import timedelta
 from io import BytesIO
 import os
@@ -49,6 +50,8 @@ from .models import (
 	WeeklyMenuItem,
 )
 
+logger = logging.getLogger(__name__)
+
 PAYSLIP_ACCESS_CODE = '12345'
 PORTAL_BASE_URL = getattr(settings, 'PORTAL_BASE_URL', 'https://hr-portal-xguc.onrender.com/')
 INTELLEGO_ALERT_USERS = {
@@ -85,7 +88,10 @@ def send_leave_email(subject, message, recipients):
 		return
 	from django.core.mail import send_mail
 	for recipient in recipients:
-		send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=False)
+		try:
+			send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=False)
+		except Exception:
+			logger.exception('Failed to send leave email to %s', recipient)
 
 
 def notify_hr_of_leave_submission(leave_request):

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core import mail
@@ -5,7 +7,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from core.forms import EmployeeProfileForm
-from core.models import Company, EmployeeProfile
+from core.models import Company, EmployeeProfile, LeaveRequest
 
 
 class CsrfConfigurationTests(TestCase):
@@ -92,6 +94,55 @@ class LeaveWorkflowEmailTests(TestCase):
         self.assertTrue(any('Jane Smith has submitted a leave request' in message.subject for message in mail.outbox))
         self.assertIn('hr.profile@example.com', [to for message in mail.outbox for to in message.to])
         self.assertTrue(any('https://hr-portal-xguc.onrender.com/' in message.body for message in mail.outbox))
+
+
+class LeaveForwardingTests(TestCase):
+    @patch('django.core.mail.send_mail', side_effect=RuntimeError('SMTP unavailable'))
+    def test_forward_leave_to_management_still_redirects_when_email_sending_fails(self, mock_send_mail):
+        company, _ = Company.objects.get_or_create(name='Intellego Investment Consultants')
+        hr_group, _ = Group.objects.get_or_create(name='HR')
+
+        hr_user = User.objects.create_user(username='hr.forward', email='hr.forward@example.com', password='StrongPass123!')
+        hr_user.groups.add(hr_group)
+        hr_user.is_staff = True
+        hr_user.save()
+
+        management_user = User.objects.create_user(username='management.forward', email='management.forward@example.com', password='StrongPass123!')
+
+        employee_user = User.objects.create_user(username='employee.forward', email='employee.forward@example.com', password='StrongPass123!')
+        employee_profile = EmployeeProfile.objects.create(
+            user=employee_user,
+            company=company,
+            employee_number='INT-2002',
+            full_name='Forwarding Employee',
+            department='Operations',
+            job_title='Coordinator',
+            email='employee.forward@example.com',
+            leave_days_balance=20,
+            dependents_count=0,
+            management_approver=management_user,
+        )
+
+        leave_request = LeaveRequest.objects.create(
+            employee=employee_profile,
+            leave_type='vacation',
+            requested_days=3,
+            start_date='2026-09-10',
+            end_date='2026-09-12',
+            reason='Family leave',
+            status='pending',
+        )
+
+        client = Client()
+        client.force_login(hr_user)
+
+        response = client.post(reverse('core:leave-forward', args=[leave_request.pk]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/leave/')
+        leave_request.refresh_from_db()
+        self.assertEqual(leave_request.status, 'forwarded')
+        mock_send_mail.assert_called_once()
 
 
 class EmployeeUserCreationTests(TestCase):
